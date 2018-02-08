@@ -31,7 +31,7 @@ public class TablesCreator {
             //Create countries table
             createSimpleTable("countries", statement);
             //Create airbuses table
-            createSimpleTable("airbuses", statement);
+            createSimpleTable("airbuses", statement, true);
             //Create pilots table
             createPilotsTable(statement);
             //Create routes routes
@@ -39,7 +39,7 @@ public class TablesCreator {
             //Create companiesAirbusesTable
             createCompaniesAirbusesTable(statement);
             //Create companiesRoutesAirbuses table
-//            createCompaniesRoutesAirbusesTable(statement);
+            createCompaniesRoutesAirbusesTable(statement);
             //Create flights table
 //            createFlightsTable(statement);
         } catch (SQLException e) {
@@ -55,7 +55,8 @@ public class TablesCreator {
             //Fill countries table
             fillSimpleTable(statement, "countries", countries);
             //Fill airbuses table
-            fillSimpleTable(statement, "airbuses", airbuses);
+            //todo different id's for one model
+            fillSimpleTable(statement, "airbuses", airbuses,10,true);
             //Fill pilots table
             fillPilotsTableWithRandomUsers(statement, 20, firstNames, lastNames);
             //Fill routes table
@@ -63,7 +64,7 @@ public class TablesCreator {
             //fill companiesAirbusesTable
             fillCompaniesAirbusesTable(statement, "companies_airbuses", 10);
             //Fill companiesRoutesAirbuses table
-//            fillCompaniesRoutesAirbusesTable(statement, "companies_routes_airbuses", "routes", "companies", "airbuses");
+            fillCompaniesRoutesAirbusesTable(statement, "companies_routes_airbuses", 4);
             //Fill flights table
 
         } catch (SQLException e) {
@@ -142,9 +143,9 @@ public class TablesCreator {
         }
     }
 
-    private void fillCompaniesRoutesAirbusesTable(Statement statement, String table, String routes, String companies, String airbuses) throws SQLException {
-        int[] routesIds = getValuesArrayFromColumn(statement, routes, "id");
-        int[] companiesIds = getValuesArrayFromColumn(statement, companies, "id");
+    private void fillCompaniesRoutesAirbusesTable(Statement statement, String table, int maxForCompany) throws SQLException {
+        int[] routesIds = getValuesArrayFromColumn(statement, "routes", "id");
+        int[] companiesIds = getValuesArrayFromColumn(statement, "companies", "id");
 
         for (int currentCompany : companiesIds) {
             int[] routesForCompany = randomValuesArrayFromArray(routesIds);
@@ -179,6 +180,25 @@ public class TablesCreator {
     private void fillSimpleTable(Statement stmt, String table, String[] names) throws SQLException {
         for (int i = 0; i < names.length; i++) {
             stmt.executeUpdate("INSERT INTO " + table + " VALUES (" + (i + 1) + ", '" + names[i] + "');");
+        }
+    }
+
+    private void fillSimpleTable(Statement stmt, String table, String[] names, boolean isRepeatableValues) throws SQLException {
+       fillSimpleTable(stmt,table,names,names.length,isRepeatableValues);
+    }
+
+    private void fillSimpleTable(Statement stmt, String table, String[] names, int count, boolean isRepeatableValues) throws SQLException {
+        if (count > names.length && !isRepeatableValues) {
+            throw new IllegalArgumentException("IMPOSSIBLE TO CREATE ARRAY OF NON-REPEATABLE VALUES FROM LESS LENGTH ARRAY");
+        }
+        if (isRepeatableValues) {
+            for (int i = 0; i < count; i++) {
+                stmt.execute("INSERT INTO " + table + " VALUES (" + (i + 1) + ", '" + Utils.getRandomString(names) + "');");
+            }
+        } else {
+            for (int i = 0; i < count; i++) {
+                stmt.executeUpdate("INSERT INTO " + table + " VALUES (" + (i + 1) + ", '" + names[i] + "');");
+            }
         }
     }
 
@@ -327,7 +347,7 @@ public class TablesCreator {
         return set.stream().mapToInt(i -> i).toArray();
     }
 
-    private int[] multiCountRandomFromArray(int[] array, int count){
+    private int[] multiCountRandomFromArray(int[] array, int count) {
         int[] newArray = new int[count];
         for (int i = 0; i < count; i++) {
             newArray[i] = Utils.getRandomInt(array);
