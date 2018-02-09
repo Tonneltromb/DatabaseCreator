@@ -27,9 +27,9 @@ public class TablesCreator {
             DatabaseMetaData metaData = conn.getMetaData();
             Statement statement = conn.createStatement();
             //Create companies table
-            createSimpleTable("companies", statement);
+            createSimpleTable("companies", statement, true);
             //Create countries table
-            createSimpleTable("countries", statement);
+            createSimpleTable("countries", statement, true);
             //Create airbuses table
             createSimpleTable("airbuses", statement, true);
             //Create pilots table
@@ -51,20 +51,19 @@ public class TablesCreator {
         try (Connection connection = DriverManager.getConnection(url, user, pass)) {
             Statement statement = connection.createStatement();
             //Fill companies table
-            fillSimpleTable(statement, "companies", companies);
+            //fillSimpleTable(statement, "companies", companies);
             //Fill countries table
-            fillSimpleTable(statement, "countries", countries);
+//            fillSimpleTable(statement, "countries", countries);
             //Fill airbuses table
-            //todo different id's for one model
-            fillSimpleTable(statement, "airbuses", airbuses, 10, true);
+//            fillSimpleTable(statement, "airbuses", airbuses, 10, true);
             //Fill pilots table
-            fillPilotsTableWithRandomPilots(statement, 20, firstNames, lastNames);
+//            fillPilotsTableWithRandomPilots(statement, 20, firstNames, lastNames);
             //Fill routes table
-            fillRoutesTable(statement, "routes", 10, 2);
+//            fillRoutesTable(statement, "routes", 10, 2);
             //fill companiesAirbusesTable
-            fillCompaniesAirbusesTable(statement, "companies_airbuses", 10);
+//            fillCompaniesAirbusesTable(statement, "companies_airbuses", 10);
             //Fill companiesRoutesAirbuses table
-//            fillCompaniesRoutesAirbusesTable(statement, "companies_routes_airbuses", 4);
+            fillCompaniesRoutesAirbusesTable(statement, "companies_routes_airbuses", 4);
             //Fill flights table
 
         } catch (SQLException e) {
@@ -89,7 +88,7 @@ public class TablesCreator {
                 "CONSTRAINT pilots_to_companies_fk FOREIGN KEY (company_id) REFERENCES companies (id));");
     }
 
-    //todo method
+    //todo method creating table wired with other two
     private void createTwoWiredTable(Statement statement, String tableName, String firstfield, String firstTable, String secondField, String secondTable) {
     }
 
@@ -109,7 +108,7 @@ public class TablesCreator {
 
     private void createCompaniesRoutesAirbusesTable(Statement statement) throws SQLException {
         statement.execute("CREATE TABLE companies_routes_airbuses (" +
-                "id INTEGER PRIMARY KEY," +
+                "id SERIAL PRIMARY KEY," +
                 "route_id INTEGER," +
                 "com_bus_id INTEGER," +
                 "CONSTRAINT companies_routes_buses_to_routes_fk FOREIGN KEY (route_id) REFERENCES routes (id)," +
@@ -118,7 +117,7 @@ public class TablesCreator {
 
     private void createFlightsTable(Statement statement) throws SQLException {
         statement.execute("CREATE TABLE flights (" +
-                "id INTEGER PRIMARY KEY," +
+                "id SERIAL PRIMARY KEY," +
                 "com_rout_bus_id INTEGER," +
                 "first_pilot INTEGER," +
                 "second_pilot INTEGER," +
@@ -128,41 +127,78 @@ public class TablesCreator {
                 "CONSTRAINT flights_to_first_pilot_fk FOREIGN KEY (first_pilot) REFERENCES pilots (id),CONSTRAINT flights_to_second_pilot_fk FOREIGN KEY (second_pilot) REFERENCES pilots (id));");
     }
 
-    private void fillRoutesTable(Statement statement, String fillingTable, int rowsCount, String countries) throws SQLException {
-        int[] resultsArray = getValuesArrayFromColumn(statement, countries, "id");
-        int[] arr1 = randomValuesFromArray(resultsArray, rowsCount >> 1, 1);
-        int[] arr2 = randomValuesFromArray(Arrays.copyOfRange(resultsArray, 1, resultsArray.length), rowsCount - arr1.length, 2);
+//    private void fillCompaniesRoutesAirbusesTable(Statement statement, String table, int maxForCompany) throws SQLException {
+//        int[] routesIds = getValuesArrayFromColumn(statement, "routes", "id");
+//        int[] companiesIds = getValuesArrayFromColumn(statement, "companies", "id");
+//
+//        for (int currentCompany : companiesIds) {
+//            int[] routesForCompany = randomValuesFromArray(routesIds);
+//            ResultSet rs = statement.executeQuery("SELECT id FROM " + airbuses + " WHERE company_id = " + currentCompany + ";");
+//            ArrayList<Integer> result = new ArrayList<>();
+//            while (rs.next()) {
+//                result.add(rs.getInt("id"));
+//            }
+//            int[] buses = result.stream().mapToInt(i -> i).toArray();
+//
+//            for (int currentRoute : routesForCompany) {
+//                int[] companyBuses = randomValuesFromArray(buses);
+//
+//                for (int currentBus : buses) {
+//                    int id = Integer.parseInt(Integer.toString(currentRoute) + Integer.toString(currentCompany) + Integer.toString(currentBus));
+//                    statement.execute("INSERT INTO " + table + " VALUES (" + id + ", " + currentCompany + ", " + currentRoute + ", " + currentBus + ")");
+//                }
+//            }
+//        }
+//    }
 
-
-        for (int i = 0; i < arr1.length; i++) {
-            statement.executeUpdate("INSERT INTO " + fillingTable + " VALUES (" + (i + 1) + "," + 1 + "," + arr1[i] + ");");
-        }
-        for (int i = 0; i < arr2.length; i++) {
-            statement.executeUpdate("INSERT INTO " + fillingTable + " VALUES (" + (i + arr1.length + 1) + "," + 2 + "," + arr2[i] + ");");
-        }
-    }
-
-    private void fillCompaniesRoutesAirbusesTable(Statement statement, String table, int maxForCompany) throws SQLException {
-        int[] routesIds = getValuesArrayFromColumn(statement, "routes", "id");
-        int[] companiesIds = getValuesArrayFromColumn(statement, "companies", "id");
-
-        for (int currentCompany : companiesIds) {
-            int[] routesForCompany = randomValuesFromArray(routesIds);
-            ResultSet rs = statement.executeQuery("SELECT id FROM " + airbuses + " WHERE company_id = " + currentCompany + ";");
-            ArrayList<Integer> result = new ArrayList<>();
-            while (rs.next()) {
-                result.add(rs.getInt("id"));
-            }
-            int[] buses = result.stream().mapToInt(i -> i).toArray();
-
-            for (int currentRoute : routesForCompany) {
-                int[] companyBuses = randomValuesFromArray(buses);
-
-                for (int currentBus : buses) {
-                    int id = Integer.parseInt(Integer.toString(currentRoute) + Integer.toString(currentCompany) + Integer.toString(currentBus));
-                    statement.execute("INSERT INTO " + table + " VALUES (" + id + ", " + currentCompany + ", " + currentRoute + ", " + currentBus + ")");
+    public void fillCompaniesRoutesAirbusesTable(Statement statement, String tableName, int numberOfRoutesForCompany) throws SQLException {
+        int[] routesId = getValuesArrayFromColumn(statement, "routes", "id");
+        int[] companiesId = getValuesArrayFromColumn(statement, "companies", "id");
+        if (numberOfRoutesForCompany < routesId.length) {
+            for (int i = 0; i < companiesId.length; i++) {
+                ResultSet set = statement.executeQuery("SELECT id FROM companies_airbuses WHERE company_id = " + companiesId[i] + ";");
+                ArrayList<Integer> result = new ArrayList<>();
+                while (set.next()) {
+                    result.add(set.getInt("id"));
+                }
+                int[] companyBuses = result.stream().mapToInt(j -> j).toArray();
+                int[] originalCompanyBuses = Arrays.copyOfRange(companyBuses, 0, companyBuses.length);
+                int[] routes = randomValuesFromArray(routesId, numberOfRoutesForCompany);
+                int[] originRoutes = Arrays.copyOfRange(routes, 0, routes.length);
+                if (companyBuses.length > routes.length) {
+                    for (int j = 0; j < companyBuses.length; j++) {
+                        int rt;
+                        if (routes.length >= 1) {
+                        Utils.Pair pair = Utils.getRandomValueAndArrayWithoutThisValue(routes);
+                        routes = pair.getArray();
+                            rt = pair.getValue();
+                        } else {
+                            rt = Utils.getRandomInt(originRoutes);
+                        }
+                        statement.execute("INSERT INTO " + tableName + " (route_id,com_bus_id) VALUES (" + rt + "," + companyBuses[j] + ");");
+                    }
+                } else {
+                    for (int j = 0; j < routes.length; j++) {
+                        Utils.Pair pair = Utils.getRandomValueAndArrayWithoutThisValue(companyBuses);
+                        routes = pair.getArray();
+                        int cb;
+                        companyBuses = pair.getArray();
+                        if (companyBuses.length >= 1) {
+                            cb = pair.getValue();
+                        } else {
+                            int randValue = new Random().nextInt(companyBuses.length / numberOfRoutesForCompany) + 1;
+                            for (int k = 0; k < randValue; k++) {
+                                cb = Utils.getRandomInt(originalCompanyBuses);
+                                statement.execute("INSERT INTO " + tableName + " (route_id,com_bus_id) VALUES (" + routes[j] + "," + cb + ");");
+                            }
+                            continue;
+                        }
+                        statement.execute("INSERT INTO " + tableName + " (route_id,com_bus_id) VALUES (" + routes[j] + "," + cb + ");");
+                    }
                 }
             }
+        } else {
+            throw new IllegalArgumentException("Bad value");
         }
     }
 
@@ -194,17 +230,17 @@ public class TablesCreator {
         fillSimpleTable(stmt, table, names, names.length, isRepeatableValues);
     }
 
-    private void fillSimpleTable(Statement stmt, String table, String[] names, int count, boolean isRepeatableValues) throws SQLException {
-        if (count > names.length && !isRepeatableValues) {
+    private void fillSimpleTable(Statement stmt, String table, String[] names, int count, boolean isRepeatableNames) throws SQLException {
+        if (count > names.length && !isRepeatableNames) {
             throw new IllegalArgumentException("IMPOSSIBLE TO CREATE ARRAY OF NON-REPEATABLE VALUES FROM LESS LENGTH ARRAY");
         }
-        if (isRepeatableValues) {
+        if (isRepeatableNames) {
             for (int i = 0; i < count; i++) {
-                stmt.execute("INSERT INTO " + table + " VALUES (" + (i + 1) + ", '" + Utils.getRandomString(names) + "');");
+                stmt.execute("INSERT INTO " + table + "(name) VALUES ('" + Utils.getRandomString(names) + "');");
             }
         } else {
             for (int i = 0; i < count; i++) {
-                stmt.executeUpdate("INSERT INTO " + table + " VALUES (" + (i + 1) + ", '" + names[i] + "');");
+                stmt.executeUpdate("INSERT INTO " + table + "(name) VALUES ('" + names[i] + "');");
             }
         }
     }
@@ -226,7 +262,6 @@ public class TablesCreator {
         }
     }
 
-    //todo alternative version of fillRoutesTable
     private void fillRoutesTable(Statement statement, String tableName, int rows, int countries) throws SQLException {
         int[] countriesId = getValuesArrayFromColumn(statement, "countries", "id");
         for (int i = 0; i < countries; i++) {
