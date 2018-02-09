@@ -103,23 +103,4 @@ public class Utils {
         }
     }
 
-
-    public static void main(String[] args) {
-//        int[] arr1 = {1, 2};
-//        int[] arr2 = {1, 2, 3};
-        int[] arr3 = {1, 2, 3, 4};
-        int[] arr4 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
-//        System.out.println(Utils.getIntegerFromNumbers(arr3));
-//        int[] ints = TablesCreator.randomValuesArrayFromArray(arr4);
-//        System.out.println(Arrays.toString(Utils.getArrayOfRandomValues(arr1, 10)));
-//        System.out.println(Arrays.toString(Utils.getArrayOfRandomValues(arr2, 10)));
-//        System.out.println(Arrays.toString(Utils.getArrayOfRandomValues(arr3, 10)));
-
-        Pair pair = getRandomValueAndArrayWithoutThisValue(arr4);
-        System.out.println("source arr length: " + arr4.length);
-        System.out.println(pair.getValue());
-        System.out.println(Arrays.toString(pair.getArray()));
-        System.out.println("result arr length: " + pair.getArray().length);
-
-    }
 }
