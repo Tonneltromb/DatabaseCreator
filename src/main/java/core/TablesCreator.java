@@ -54,6 +54,15 @@ public class TablesCreator {
         }
     }
 
+    public void clearTable(String tableName) {
+        try(Connection connection = DriverManager.getConnection(url,user,pass)) {
+            Statement statement = connection.createStatement();
+            statement.execute("DELETE FROM "+tableName+";");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public String[] showTables() {
         ArrayList<String> tables = new ArrayList<>();
         try (Connection conn = DriverManager.getConnection(url, user, pass)) {

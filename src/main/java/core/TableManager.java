@@ -5,7 +5,8 @@ public class TableManager {
         TablesCreator db = new TablesCreator("fly_companies");
 //        db.deleteAllTables();
 //        db.createTables();
-        db.fillTables();
+//        db.fillTables();
+        db.clearTable("flights");
 //        System.out.println(Arrays.toString(db.showTables()));
     }
 }
